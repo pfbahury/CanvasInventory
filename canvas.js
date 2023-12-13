@@ -132,6 +132,10 @@ function loadSavedSquares() {
     var savedSquares = localStorage.getItem("squares");
     if (savedSquares) {
         squares = JSON.parse(savedSquares);
+        redrawSquares(); // Redraw squares after loading
+        for (var i = 0; i < squares.length; i++) {
+            createDeleteButton(squares[i], i);
+        }
     }
 }
 
