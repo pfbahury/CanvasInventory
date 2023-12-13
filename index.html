@@ -1,11 +1,30 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Canvas</title>
-</head>
-<body>
-    <canvas id="canvas"></canvas>
-    <button id="createSquareBtn">Create Square</button>
-    <script src="canvas.js"></script>
-</body>
+    <head>
+        <title>Canvas</title>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+
+        <form id="squareForm">
+            <label for="xPosition">X Position:</label>
+            <input type="number" id="xPosition" required>
+
+            <label for="yPosition">Y Position:</label>
+            <input type="number" id="yPosition" required>
+
+            <label for="squareSize">Square Size:</label>
+            <input type="number" id="squareSize" required>
+
+            <label for="squareColor">Square Color:</label>
+            <input type="color" id="squareColor" value="#3498db" required>
+
+            <label for="squareName">Square Name:</label>
+            <input type="text" id="squareName">
+
+            <button type="button" id="createSquareBtn">Create Square</button>
+        </form>
+
+        <script src="canvas.js"></script>
+    </body>
 </html>
