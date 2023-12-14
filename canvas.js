@@ -1,6 +1,8 @@
 let canvas = document.getElementById("canvas");
 let context = canvas.getContext("2d");
 let createSquareBtn = document.getElementById("createSquareBtn");
+let deleteSquareBtn = document.getElementById("deleteSquareBtn");
+let resetCanvasBtn = document.getElementById("resetCanvasBtn");
 let squareForm = document.getElementById("squareForm");
 let squares = [];
 
@@ -18,17 +20,20 @@ loadSavedSquares();
 redrawSquares();
 
 // Add event listener for button clicks
-createSquareBtn.addEventListener("click", function() {
+createSquareBtn.addEventListener("click", function () {
     var xPosition = parseInt(document.getElementById("xPosition").value, 10);
     var yPosition = parseInt(document.getElementById("yPosition").value, 10);
-    var squareSize = parseInt(document.getElementById("squareSize").value, 10);
+    var squareWidth = parseInt(document.getElementById("squareWidth").value, 10);
+    var squareHeight = parseInt(document.getElementById("squareHeight").value, 10);
     var squareColor = document.getElementById("squareColor").value;
     var squareName = document.getElementById("squareName").value;
 
-    if (!checkOverlap(xPosition, yPosition, squareSize)) {
-        drawSquare(xPosition, yPosition, squareSize, squareColor, squareName);
-        squares.push({ x: xPosition, y: yPosition, size: squareSize, color: squareColor, name: squareName });
+    // Check for overlap with existing squares
+    if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight)) {
+        drawSquare(xPosition, yPosition, squareWidth, squareHeight, squareColor, squareName);
+        squares.push({ x: xPosition, y: yPosition, width: squareWidth, height: squareHeight, color: squareColor, name: squareName });
         saveSquares(); // Save the squares to localStorage
+        createDeleteButton(); // Create the delete button for the latest square
         clearForm();
     } else {
         alert("Overlap detected. Please choose a different position or size.");
@@ -36,75 +41,111 @@ createSquareBtn.addEventListener("click", function() {
 });
 
 // Add event listener for canvas clicks
-canvas.addEventListener("click", function(event) {
+canvas.addEventListener("click", function (event) {
     var mouseX = event.clientX - canvas.getBoundingClientRect().left;
     var mouseY = event.clientY - canvas.getBoundingClientRect().top;
 
+    // Check if the click is inside any of the squares
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
         if (
             mouseX >= square.x &&
-            mouseX <= square.x + square.size &&
+            mouseX <= square.x + square.width &&
             mouseY >= square.y &&
-            mouseY <= square.y + square.size
+            mouseY <= square.y + square.height
         ) {
+            // Populate input fields with square values
             document.getElementById("xPosition").value = square.x;
             document.getElementById("yPosition").value = square.y;
-            document.getElementById("squareSize").value = square.size;
+            document.getElementById("squareWidth").value = square.width;
+            document.getElementById("squareHeight").value = square.height;
             document.getElementById("squareColor").value = square.color;
             document.getElementById("squareName").value = square.name;
+
+            // Enable the delete button
+            deleteSquareBtn.disabled = false;
+
+            // Exit the loop once a square is found
             break;
         }
     }
 });
 
-function drawSquare(x, y, size, color, name) {
+// Add event listener for delete button clicks
+deleteSquareBtn.addEventListener("click", function () {
+    // Get the values of the selected square
+    var xToDelete = parseInt(document.getElementById("xPosition").value, 10);
+    var yToDelete = parseInt(document.getElementById("yPosition").value, 10);
+    var widthToDelete = parseInt(document.getElementById("squareWidth").value, 10);
+    var heightToDelete = parseInt(document.getElementById("squareHeight").value, 10);
+
+    // Find the index of the square to delete
+    var indexToDelete = -1;
+    for (var i = 0; i < squares.length; i++) {
+        var square = squares[i];
+        if (square.x === xToDelete && square.y === yToDelete && square.width === widthToDelete && square.height === heightToDelete) {
+            indexToDelete = i;
+            break;
+        }
+    }
+
+    // Delete the square if found
+    if (indexToDelete !== -1) {
+        squares.splice(indexToDelete, 1);
+        redrawSquares(); // Redraw the canvas after deleting the square
+        saveSquares(); // Save the updated squares to localStorage
+        clearForm(); // Clear the form fields
+        deleteSquareBtn.disabled = true; // Disable the delete button after deletion
+    } else {
+        alert("Error: Selected square not found.");
+    }
+});
+
+// Add event listener for reset canvas button clicks
+resetCanvasBtn.addEventListener("click", function () {
+    // Clear the squares array
+    squares = [];
+
+    // Clear the canvas
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.strokeRect(0, 0, canvas.width, canvas.height);
+
+    // Disable the delete button
+    deleteSquareBtn.disabled = true;
+
+    // Save the updated squares to localStorage
+    saveSquares();
+});
+
+function drawSquare(x, y, width, height, color, name) {
     context.fillStyle = color;
-    context.fillRect(x, y, size, size);
-    context.strokeRect(x, y, size, size);
+    context.fillRect(x, y, width, height);
+    context.strokeRect(x, y, width, height);
 
     context.fillStyle = "#000";
     context.font = "12px Arial";
     context.textAlign = "center";
     context.textBaseline = "middle";
 
-    var centerX = x + size / 2;
-    var centerY = y + size / 2;
+    var centerX = x + width / 2;
+    var centerY = y + height / 2;
 
     context.fillText(name, centerX, centerY);
 }
 
-function createDeleteButton(square, index) {
-    var existingButton = document.getElementById("deleteSquareBtn");
-    if (existingButton) {
-        existingButton.remove();
-    }
-
-    var deleteButton = document.createElement("button");
-    deleteButton.id = "deleteSquareBtn";
-    deleteButton.textContent = "Delete Square";
-    deleteButton.style.position = "absolute";
-    deleteButton.style.left = square.x + square.size + 10 + "px";
-    deleteButton.style.top = square.y + "px";
-
-    deleteButton.addEventListener("click", function() {
-        squares.splice(index, 1);
-        redrawSquares();
-        deleteButton.remove();
-        saveSquares(); // Save the squares to localStorage after deleting one
-    });
-
-    document.body.appendChild(deleteButton);
+function createDeleteButton() {
+    // Create a delete button for the latest square
+    deleteSquareBtn.disabled = false;
 }
 
-function checkOverlap(x, y, size) {
+function checkOverlap(x, y, width, height) {
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
         if (
-            x < square.x + square.size &&
-            x + size > square.x &&
-            y < square.y + square.size &&
-            y + size > square.y
+            x < square.x + square.width &&
+            x + width > square.x &&
+            y < square.y + square.height &&
+            y + height > square.y
         ) {
             return true;
         }
@@ -112,13 +153,14 @@ function checkOverlap(x, y, size) {
     return false;
 }
 
+
 function redrawSquares() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.strokeRect(0, 0, canvas.width, canvas.height);
 
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
-        drawSquare(square.x, square.y, square.size, square.color, square.name);
+        drawSquare(square.x, square.y, square.width, square.height, square.color, square.name);
     }
 }
 
@@ -133,8 +175,9 @@ function loadSavedSquares() {
     if (savedSquares) {
         squares = JSON.parse(savedSquares);
         redrawSquares(); // Redraw squares after loading
+        // Create delete buttons for each loaded square
         for (var i = 0; i < squares.length; i++) {
-            createDeleteButton(squares[i], i);
+            createDeleteButton();
         }
     }
 }
@@ -142,7 +185,8 @@ function loadSavedSquares() {
 function clearForm() {
     document.getElementById("xPosition").value = "";
     document.getElementById("yPosition").value = "";
-    document.getElementById("squareSize").value = "";
+    document.getElementById("squareWidth").value = "";
+    document.getElementById("squareHeight").value = "";
     document.getElementById("squareColor").value = "#3498db";
     document.getElementById("squareName").value = "";
 }

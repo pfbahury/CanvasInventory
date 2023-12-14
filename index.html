@@ -1,30 +1,37 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Canvas</title>
-    </head>
-    <body>
-        <canvas id="canvas"></canvas>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <form id="squareForm">
+        <label for="xPosition">X Position:</label>
+        <input type="number" id="xPosition" required />
 
-        <form id="squareForm">
-            <label for="xPosition">X Position:</label>
-            <input type="number" id="xPosition" required>
+        <label for="yPosition">Y Position:</label>
+        <input type="number" id="yPosition" required />
 
-            <label for="yPosition">Y Position:</label>
-            <input type="number" id="yPosition" required>
+        <label for="squareWidth">Width:</label>
+        <input type="number" id="squareWidth" required />
 
-            <label for="squareSize">Square Size:</label>
-            <input type="number" id="squareSize" required>
+        <label for="squareHeight">Height:</label>
+        <input type="number" id="squareHeight" required />
 
-            <label for="squareColor">Square Color:</label>
-            <input type="color" id="squareColor" value="#3498db" required>
+        <label for="squareColor">Color:</label>
+        <input type="color" id="squareColor" value="#3498db" />
 
-            <label for="squareName">Square Name:</label>
-            <input type="text" id="squareName">
+        <label for="squareName">Name:</label>
+        <input type="text" id="squareName" />
 
-            <button type="button" id="createSquareBtn">Create Square</button>
-        </form>
+        <button type="button" id="createSquareBtn">Create Square</button>
+        <button type="button" id="deleteSquareBtn" disabled>Delete Square</button>
+    </form>
+    <button type="button" id="resetCanvasBtn">Reset Canvas</button>
 
-        <script src="canvas.js"></script>
-    </body>
+
+    <script src="canvas.js"></script>
+</body>
 </html>
