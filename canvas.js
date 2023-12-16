@@ -23,31 +23,41 @@ redrawSquares();
 // Add event listener for button clicks
 // Add event listener for button clicks
 createSquareBtn.addEventListener("click", function () {
+    var xPosition = parseInt(document.getElementById("xPosition").value, 10);
+    var yPosition = parseInt(document.getElementById("yPosition").value, 10);
+    var squareWidth = parseInt(document.getElementById("squareWidth").value, 10);
+    var squareHeight = parseInt(document.getElementById("squareHeight").value, 10);
+    var squareColor = document.getElementById("squareColor").value;
+    var squareName = document.getElementById("squareName").value;
+
     // If a square is selected, update its properties
     if (selectedSquare) {
-        selectedSquare.x = parseInt(document.getElementById("xPosition").value, 10);
-        selectedSquare.y = parseInt(document.getElementById("yPosition").value, 10);
-        selectedSquare.width = parseInt(document.getElementById("squareWidth").value, 10);
-        selectedSquare.height = parseInt(document.getElementById("squareHeight").value, 10);
-        selectedSquare.color = document.getElementById("squareColor").value;
-        selectedSquare.name = document.getElementById("squareName").value;
+        // Check for overlap with other squares after updating
+        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, selectedSquare)) {
+            // Update the selected square and redraw
+            selectedSquare.x = xPosition;
+            selectedSquare.y = yPosition;
+            selectedSquare.width = squareWidth;
+            selectedSquare.height = squareHeight;
+            selectedSquare.color = squareColor;
+            selectedSquare.name = squareName;
 
-        redrawSquares(); // Redraw the canvas after updating the square
-        saveSquares(); // Save the updated squares to localStorage
-        clearForm(); // Clear the form fields
-        deleteSquareBtn.disabled = true; // Disable the delete button after updating
-        selectedSquare = null; // Clear the selected square
+            redrawSquares();
+            saveSquares();
+            clearForm();
+            deleteSquareBtn.disabled = true;
+            selectedSquare = null;
+        } else {
+            alert("Overlap detected. Please choose a different position or size.");
+            // Reset the selected square to its previous state
+            redrawSquares();
+            clearForm();
+        }
     } else {
         // If no square is selected, create a new square as before
-        var xPosition = parseInt(document.getElementById("xPosition").value, 10);
-        var yPosition = parseInt(document.getElementById("yPosition").value, 10);
-        var squareWidth = parseInt(document.getElementById("squareWidth").value, 10);
-        var squareHeight = parseInt(document.getElementById("squareHeight").value, 10);
-        var squareColor = document.getElementById("squareColor").value;
-        var squareName = document.getElementById("squareName").value;
-
         // Check for overlap with existing squares
-        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight)) {
+        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, null)) {
+            // Draw the new square
             drawSquare(xPosition, yPosition, squareWidth, squareHeight, squareColor, squareName);
             squares.push({ x: xPosition, y: yPosition, width: squareWidth, height: squareHeight, color: squareColor, name: squareName });
             saveSquares(); // Save the squares to localStorage
@@ -167,9 +177,13 @@ function createDeleteButton() {
     deleteSquareBtn.disabled = false;
 }
 
-function checkOverlap(x, y, width, height) {
+function checkOverlap(x, y, width, height, currentSquare) {
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
+        // Skip checking against the current square (useful when updating)
+        if (currentSquare && currentSquare === square) {
+            continue;
+        }
         if (
             x < square.x + square.width &&
             x + width > square.x &&
