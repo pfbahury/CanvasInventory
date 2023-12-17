@@ -29,11 +29,12 @@ createSquareBtn.addEventListener("click", function () {
     var squareHeight = parseInt(document.getElementById("squareHeight").value, 10);
     var squareColor = document.getElementById("squareColor").value;
     var squareName = document.getElementById("squareName").value;
+    var minDistance = 50;
 
     // If a square is selected, update its properties
     if (selectedSquare) {
         // Check for overlap with other squares after updating
-        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, selectedSquare)) {
+        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, selectedSquare, minDistance)) {
             // Update the selected square and redraw
             selectedSquare.x = xPosition;
             selectedSquare.y = yPosition;
@@ -48,7 +49,7 @@ createSquareBtn.addEventListener("click", function () {
             deleteSquareBtn.disabled = true;
             selectedSquare = null;
         } else {
-            alert("Overlap detected. Please choose a different position or size.");
+            alert("Overlap detected or minimum distance violation. Please choose a different position or size.");
             // Reset the selected square to its previous state
             redrawSquares();
             clearForm();
@@ -56,7 +57,7 @@ createSquareBtn.addEventListener("click", function () {
     } else {
         // If no square is selected, create a new square as before
         // Check for overlap with existing squares
-        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, null)) {
+        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, null, minDistance)) {
             // Draw the new square
             drawSquare(xPosition, yPosition, squareWidth, squareHeight, squareColor, squareName);
             squares.push({ x: xPosition, y: yPosition, width: squareWidth, height: squareHeight, color: squareColor, name: squareName });
@@ -64,7 +65,7 @@ createSquareBtn.addEventListener("click", function () {
             createDeleteButton(); // Create the delete button for the latest square
             clearForm();
         } else {
-            alert("Overlap detected. Please choose a different position or size.");
+             alert("Overlap detected or minimum distance violation. Please choose a different position or size.");
         }
     }
 });
@@ -76,6 +77,7 @@ canvas.addEventListener("click", function (event) {
     var mouseY = event.clientY - canvas.getBoundingClientRect().top;
 
     // Check if the click is inside any of the squares
+    var squareClicked = null;
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
         if (
@@ -84,23 +86,28 @@ canvas.addEventListener("click", function (event) {
             mouseY >= square.y &&
             mouseY <= square.y + square.height
         ) {
-            // Populate input fields with square values
-            document.getElementById("xPosition").value = square.x;
-            document.getElementById("yPosition").value = square.y;
-            document.getElementById("squareWidth").value = square.width;
-            document.getElementById("squareHeight").value = square.height;
-            document.getElementById("squareColor").value = square.color;
-            document.getElementById("squareName").value = square.name;
-
-            // Enable the delete button
-            deleteSquareBtn.disabled = false;
-
-            // Set the selected square
-            selectedSquare = square;
-
-            // Exit the loop once a square is found
+            squareClicked = square;
             break;
         }
+    }
+
+    // If a square is clicked, populate input fields and enable delete button
+    if (squareClicked) {
+        document.getElementById("xPosition").value = squareClicked.x;
+        document.getElementById("yPosition").value = squareClicked.y;
+        document.getElementById("squareWidth").value = squareClicked.width;
+        document.getElementById("squareHeight").value = squareClicked.height;
+        document.getElementById("squareColor").value = squareClicked.color;
+        document.getElementById("squareName").value = squareClicked.name;
+        deleteSquareBtn.disabled = false;
+
+        // Set the selected square
+        selectedSquare = squareClicked;
+    } else {
+        // If no square is clicked, clear input fields, disable delete button, and unselect square
+        clearForm();
+        deleteSquareBtn.disabled = true;
+        selectedSquare = null;
     }
 });
 
@@ -177,25 +184,27 @@ function createDeleteButton() {
     deleteSquareBtn.disabled = false;
 }
 
-function checkOverlap(x, y, width, height, currentSquare) {
+function checkOverlap(x, y, width, height, currentSquare, minDistance) {
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
         // Skip checking against the current square (useful when updating)
         if (currentSquare && currentSquare === square) {
             continue;
         }
+
+        // Calculate the minimum distance
+        var minDistanceX = (square.width + width) / 2 + minDistance;
+        var minDistanceY = (square.height + height) / 2 + minDistance;
+
         if (
-            x < square.x + square.width &&
-            x + width > square.x &&
-            y < square.y + square.height &&
-            y + height > square.y
+            Math.abs(x - square.x) < minDistanceX &&
+            Math.abs(y - square.y) < minDistanceY
         ) {
             return true;
         }
     }
     return false;
 }
-
 
 function redrawSquares() {
     context.clearRect(0, 0, canvas.width, canvas.height);
