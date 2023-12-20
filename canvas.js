@@ -71,7 +71,6 @@ createSquareBtn.addEventListener("click", function () {
 });
 
 // Add event listener for canvas clicks
-// Add event listener for canvas clicks
 canvas.addEventListener("click", function (event) {
     var mouseX = event.clientX - canvas.getBoundingClientRect().left;
     var mouseY = event.clientY - canvas.getBoundingClientRect().top;
