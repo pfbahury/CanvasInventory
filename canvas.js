@@ -31,6 +31,12 @@ createSquareBtn.addEventListener("click", function () {
     var squareName = document.getElementById("squareName").value;
     var minDistance = 50;
 
+    // Check if the square is within the canvas dimensions
+    if (xPosition < 0 || yPosition < 0 || xPosition + squareWidth > canvas.width || yPosition + squareHeight > canvas.height) {
+        alert("Square dimensions exceed canvas boundaries. Please choose a different position or size.");
+        return;
+    }
+
     // If a square is selected, update its properties
     if (selectedSquare) {
         // Check for overlap with other squares after updating
@@ -56,8 +62,9 @@ createSquareBtn.addEventListener("click", function () {
         }
     } else {
         // If no square is selected, create a new square as before
-        // Check for overlap with existing squares
-        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, null, minDistance)) {
+        // Check for overlap with existing squares and canvas dimensions
+        if (!checkOverlap(xPosition, yPosition, squareWidth, squareHeight, null, minDistance) &&
+            xPosition >= 0 && yPosition >= 0 && xPosition + squareWidth <= canvas.width && yPosition + squareHeight <= canvas.height) {
             // Draw the new square
             drawSquare(xPosition, yPosition, squareWidth, squareHeight, squareColor, squareName);
             squares.push({ x: xPosition, y: yPosition, width: squareWidth, height: squareHeight, color: squareColor, name: squareName });
@@ -65,10 +72,11 @@ createSquareBtn.addEventListener("click", function () {
             createDeleteButton(); // Create the delete button for the latest square
             clearForm();
         } else {
-             alert("Overlap detected or minimum distance violation. Please choose a different position or size.");
+            alert("Overlap detected, minimum distance violation, or square dimensions exceed canvas boundaries. Please choose a different position or size.");
         }
     }
 });
+
 
 // Add event listener for canvas clicks
 canvas.addEventListener("click", function (event) {
@@ -255,7 +263,67 @@ function loadSavedSquares() {
         }
     }
 }
+// Add event listener for download JSON button click
+var downloadJsonBtn = document.getElementById("downloadJsonBtn");
+downloadJsonBtn.addEventListener("click", function () {
+    downloadJson();
+});
 
+// Function to download JSON
+function downloadJson() {
+    // Convert squares array to JSON string
+    var jsonContent = JSON.stringify(squares, null, 2);
+
+    // Create a Blob with the JSON content
+    var blob = new Blob([jsonContent], { type: "application/json" });
+
+    // Create a download link
+    var downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = "canvas_squares.json";
+
+    // Append the link to the document
+    document.body.appendChild(downloadLink);
+
+    // Trigger the download
+    downloadLink.click();
+
+    // Remove the link from the document
+    document.body.removeChild(downloadLink);
+}
+// Add event listener for upload JSON input change
+var uploadJsonInput = document.getElementById("uploadJsonInput");
+uploadJsonInput.addEventListener("change", function () {
+    uploadJson();
+});
+
+// Function to handle file upload
+function uploadJson() {
+    var fileInput = document.getElementById("uploadJsonInput");
+    var file = fileInput.files[0];
+
+    if (file) {
+        var reader = new FileReader();
+
+        reader.onload = function (e) {
+            var content = e.target.result;
+            try {
+                var json = JSON.parse(content);
+
+                // Merge the loaded squares with existing squares
+                squares = squares.concat(json);
+
+                // Redraw the canvas with the updated squares
+                redrawSquares();
+                saveSquares();
+            } catch (error) {
+                alert("Error parsing JSON file. Please make sure the file is valid JSON.");
+            }
+        };
+
+        reader.readAsText(file);
+    }
+}
 function clearForm() {
     document.getElementById("xPosition").value = "";
     document.getElementById("yPosition").value = "";
