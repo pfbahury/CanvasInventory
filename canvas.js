@@ -29,7 +29,7 @@ createSquareBtn.addEventListener("click", function () {
     var squareHeight = parseInt(document.getElementById("squareHeight").value, 10);
     var squareColor = document.getElementById("squareColor").value;
     var squareName = document.getElementById("squareName").value;
-    var minDistance = 50;
+    var minDistance = 0; // Minimum distance between squares
 
     // Check if the square is within the canvas dimensions
     if (xPosition < 0 || yPosition < 0 || xPosition + squareWidth > canvas.width || yPosition + squareHeight > canvas.height) {
@@ -398,33 +398,50 @@ function optimizeBottomLeftBinPacking() {
     // Sort squares in descending order based on width
     squares.sort((a, b) => b.width - a.width);
 
-    // Initialize bins (rows)
-    var bins = [[]];
+    var xOffset = 0;
+    var yOffset = 0;
+    var minDistanceX = 50; // Minimum horizontal distance
 
-    // Iterate through each square
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
-        var placed = false;
 
-        // Try to place the square in existing bins
-        for (var j = 0; j < bins.length; j++) {
-            if (tryToFitInBin(square, bins[j])) {
-                placed = true;
-                break;
-            }
+        // Check if the square's width is greater than 100
+        if (square.width > 100) {
+            // Swap width and height
+            var temp = square.width;
+            square.width = square.height;
+            square.height = temp;
+        }
+        
+        // Check if the square fits in the canvas based on the current layout
+        if (!fitsInCanvas(square, xOffset, yOffset)) {
+            // If the square doesn't fit in the current column, move to the next column
+            xOffset += Math.min(square.width + minDistanceX);
+            yOffset = 0;
         }
 
-        // If the square doesn't fit in existing bins, create a new bin
-        if (!placed) {
-            bins.push([square]);
-        }
+        // Set the square position
+        square.x = xOffset;
+        square.y = yOffset;
+
+        // Update yOffset for the next square in the column
+        yOffset += square.height;
     }
 
-    // Update square positions based on the optimized layout
-    updateSquarePositions(bins);
-
-    // Redraw squares on the canvas
+    // Update the canvas with the new layout
     redrawSquares();
+}
+
+
+
+function fitsInCanvas(square, xOffset, yOffset) {
+    // Check if the square fits in the canvas based on the current layout
+    return xOffset + square.width <= canvas.width && yOffset + square.height <= canvas.height;
+}
+
+function fitsInCanvas(square, xOffset, yOffset) {
+    // Check if the square fits in the canvas based on the current layout
+    return xOffset + square.width <= canvas.width && yOffset + square.height <= canvas.height;
 }
 
 
