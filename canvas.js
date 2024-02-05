@@ -171,6 +171,8 @@ resetCanvasBtn.addEventListener("click", function () {
 });
 
 function drawSquare(x, y, width, height, color, name) {
+    console.log("Drawing square at:", x, y);
+
     context.fillStyle = color;
     context.fillRect(x, y, width, height);
     context.strokeRect(x, y, width, height);
@@ -222,6 +224,7 @@ function redrawSquares() {
 
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
+        console.log("Square", i + 1, "Position:", square.x, square.y);
         drawSquare(square.x, square.y, square.width, square.height, square.color, square.name);
     }
 }
@@ -324,6 +327,42 @@ function uploadJson() {
         reader.readAsText(file);
     }
 }
+
+// Add event listener for optimize layout button clicks
+document.getElementById("optimizeLayoutBtn").addEventListener("click", function () {
+    optimizeLayout();
+});
+
+function optimizeLayout() {
+    console.log("Optimizing layout...");
+
+    // Get the canvas size
+    var canvasWidth = canvas.width;
+    var canvasHeight = canvas.height;
+
+    // Get the existing squares from the JSON file
+    var savedSquares = localStorage.getItem("squares");
+    if (!savedSquares) {
+        alert("No squares found. Create some squares before optimizing the layout.");
+        return;
+    }
+
+    // Parse the JSON data
+    squares = JSON.parse(savedSquares);
+
+    // Iterate through each square and randomly change the position within canvas boundaries
+    squares.forEach(function (square) {
+        square.x = Math.floor(Math.random() * (canvasWidth - square.width));
+        square.y = Math.floor(Math.random() * (canvasHeight - square.height));
+    });
+
+    // Update the canvas with the new layout
+    redrawSquares();
+
+    // Save the updated layout to the JSON file
+    saveSquares();
+}
+
 function clearForm() {
     document.getElementById("xPosition").value = "";
     document.getElementById("yPosition").value = "";
