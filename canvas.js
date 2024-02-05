@@ -328,12 +328,11 @@ function uploadJson() {
     }
 }
 
-// Add event listener for optimize layout button clicks
-document.getElementById("optimizeLayoutBtn").addEventListener("click", function () {
-    optimizeLayout();
+document.getElementById("randomizeLayoutBtn").addEventListener("click", function () {
+    randomizeLayout();
 });
 
-function optimizeLayout() {
+function randomizeLayout() {
     console.log("Optimizing layout...");
 
     // Get the canvas size
@@ -362,6 +361,124 @@ function optimizeLayout() {
     // Save the updated layout to the JSON file
     saveSquares();
 }
+
+// Add event listener for optimize layout button clicks
+document.getElementById("optimizeLayoutBtn").addEventListener("click", function () {
+    optimizeLayout();
+});
+
+function optimizeLayout() {
+    console.log("Optimizing layout...");
+
+    // Get the canvas size
+    var canvasWidth = canvas.width;
+    var canvasHeight = canvas.height;
+
+    // Get the existing squares from the JSON file
+    var savedSquares = localStorage.getItem("squares");
+    if (!savedSquares) {
+        alert("No squares found. Create some squares before optimizing the layout.");
+        return;
+    }
+
+    // Parse the JSON data
+    squares = JSON.parse(savedSquares);
+
+    // Iterate through each square and randomly change the position within canvas boundaries
+    optimizeBottomLeftBinPacking();
+
+    // Update the canvas with the new layout
+    redrawSquares();
+
+    // Save the updated layout to the JSON file
+    saveSquares();
+}
+
+function optimizeBottomLeftBinPacking() {
+    // Sort squares in descending order based on width
+    squares.sort((a, b) => b.width - a.width);
+
+    // Initialize bins (rows)
+    var bins = [[]];
+
+    // Iterate through each square
+    for (var i = 0; i < squares.length; i++) {
+        var square = squares[i];
+        var placed = false;
+
+        // Try to place the square in existing bins
+        for (var j = 0; j < bins.length; j++) {
+            if (tryToFitInBin(square, bins[j])) {
+                placed = true;
+                break;
+            }
+        }
+
+        // If the square doesn't fit in existing bins, create a new bin
+        if (!placed) {
+            bins.push([square]);
+        }
+    }
+
+    // Update square positions based on the optimized layout
+    updateSquarePositions(bins);
+
+    // Redraw squares on the canvas
+    redrawSquares();
+}
+
+
+function tryToFitInBin(square, bin) {
+    // Check if the square fits in the given bin
+    for (var i = 0; i < bin.length; i++) {
+        var binSquare = bin[i];
+
+        // Check for horizontal overlap
+        var horizontalOverlap = binSquare.x + binSquare.width > square.x && square.x + square.width > binSquare.x;
+
+        // Check for vertical overlap
+        var verticalOverlap = binSquare.y + binSquare.height > square.y && square.y + square.height > binSquare.y;
+
+        // If there is any overlap, return false
+        if (horizontalOverlap && verticalOverlap) {
+            console.log(`Overlap detected: Square ${square.name} and Square ${binSquare.name}`);
+            return true;
+        }
+    }
+
+    return false; // No overlap in the bin
+}
+
+
+    function updateSquarePositions(bins) {
+        // Update square positions based on the optimized layout
+        var yOffset = 0;
+        for (var i = 0; i < bins.length; i++) {
+            var bin = bins[i];
+            var xOffset = 0;
+    
+            // Calculate the maximum height in the current bin
+            var binMaxHeight = bin.reduce((maxHeight, square) => Math.max(maxHeight, square.height), 0);
+    
+            for (var j = 0; j < bin.length; j++) {
+                var square = bin[j];
+    
+                // If overlap is detected, adjust the Y position
+                if (j > 0 && square.y < bin[j - 1].y + bin[j - 1].height) {
+                    square.y = bin[j - 1].y + bin[j - 1].height;
+                }
+    
+                // Set the X and Y positions
+                square.x = xOffset;
+                square.y = yOffset;
+    
+                xOffset += square.width;
+            }
+            yOffset += binMaxHeight;
+        }
+    }
+    
+
 
 function clearForm() {
     document.getElementById("xPosition").value = "";
