@@ -400,7 +400,7 @@ function optimizeBottomLeftBinPacking() {
 
     var xOffset = 0;
     var yOffset = 0;
-    var minDistanceX = 50; // Minimum horizontal distance
+    var minDistanceX = 150; // Minimum horizontal distance
 
     for (var i = 0; i < squares.length; i++) {
         var square = squares[i];
@@ -416,8 +416,15 @@ function optimizeBottomLeftBinPacking() {
         // Check if the square fits in the canvas based on the current layout
         if (!fitsInCanvas(square, xOffset, yOffset)) {
             // If the square doesn't fit in the current column, move to the next column
-            xOffset += Math.min(square.width + minDistanceX);
+            xOffset += minDistanceX;
             yOffset = 0;
+
+            // Check if the new position is out of bounds
+            if (xOffset + square.width > canvas.width) {
+                // Handle the case where there is not enough space
+                alert("Not enough space in canvas for the square. Adjust square dimensions or canvas size.");
+                return; // Stop the optimization process
+            }
         }
 
         // Set the square position
@@ -439,10 +446,6 @@ function fitsInCanvas(square, xOffset, yOffset) {
     return xOffset + square.width <= canvas.width && yOffset + square.height <= canvas.height;
 }
 
-function fitsInCanvas(square, xOffset, yOffset) {
-    // Check if the square fits in the canvas based on the current layout
-    return xOffset + square.width <= canvas.width && yOffset + square.height <= canvas.height;
-}
 
 
 function tryToFitInBin(square, bin) {
@@ -467,7 +470,7 @@ function tryToFitInBin(square, bin) {
 }
 
 
-    function updateSquarePositions(bins) {
+function updateSquarePositions(bins) {
         // Update square positions based on the optimized layout
         var yOffset = 0;
         for (var i = 0; i < bins.length; i++) {
