@@ -6,7 +6,12 @@
     <title>Canvas</title>
 </head>
 <body>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" width="500" height="400"></canvas>
+    <label for="canvasWidth">Canvas Width:</label>
+    <input type="number" id="canvasWidth" value="500">
+    <label for="canvasHeight">Canvas Height:</label>
+    <input type="number" id="canvasHeight" value="400">
+    <button onclick="updateCanvasSize()">Update Canvas Size</button>
     <form id="squareForm">
         <label for="xPosition">X Position:</label>
         <input type="number" id="xPosition" required />

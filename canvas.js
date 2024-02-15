@@ -10,9 +10,13 @@ let selectedSquare = null;
 var window_height = window.innerHeight;
 var window_width = window.innerWidth;
 
-// Set the canvas size to be 30% of the window width and 50% of the window height
-canvas.width = 500
-canvas.height = 400
+// Load the canvas size from localStorage, or use default values
+let canvasWidth = localStorage.getItem("canvasWidth") || 500;
+let canvasHeight = localStorage.getItem("canvasHeight") || 400;
+
+// Set the canvas size
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
 
 // Load the saved squares from localStorage
 loadSavedSquares();
@@ -20,7 +24,23 @@ loadSavedSquares();
 // Draw the saved squares on the canvas
 redrawSquares();
 
-// Add event listener for button clicks
+function updateCanvasSize() {
+    // Read values from input fields
+    let newCanvasWidth = parseInt(document.getElementById("canvasWidth").value);
+    let newCanvasHeight = parseInt(document.getElementById("canvasHeight").value);
+
+    // Update canvas size
+    canvas.width = newCanvasWidth;
+    canvas.height = newCanvasHeight;
+
+    // Save canvas size to localStorage
+    localStorage.setItem("canvasWidth", newCanvasWidth);
+    localStorage.setItem("canvasHeight", newCanvasHeight);
+
+    // Redraw squares after updating canvas size
+    redrawSquares();
+}
+
 // Add event listener for button clicks
 createSquareBtn.addEventListener("click", function () {
     var xPosition = parseInt(document.getElementById("xPosition").value, 10);
